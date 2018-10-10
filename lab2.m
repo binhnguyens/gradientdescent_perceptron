@@ -46,20 +46,24 @@
 % InitialParameterSet,LearningRate,Theta,MaxNoOfIteration);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-load DataLab2_1.mat;
-Data = DataLab2_1;
+close all;
+clear;
+
+
+load DataLab2_2.mat;
+Data = DataLab2_2;
 ClassSplit = 50;
 DataSplitRate = 0.4;
 InitialParameterSet = [0 0 1];
 LearningRate = 0.01;
 Theta = 0;
-MaxNoOfIteration = 300;
+MaxNoOfIteration = 1000;
 % [OptimizedParameterSet,NoOfIteration] = lab2(Data,ClassSplit,DataSplitRate, InitialParameterSet,LearningRate,Theta,MaxNoOfIteration);
 
 
-function [TrainedParameterSet,NoOfIteration] =lab2(Data,ClassSplit,DataSplitRate,InitialParameterSet,LearningRate,Theta,MaxNoOfIteration)
+% function [TrainedParameterSet,NoOfIteration] =lab2(Data,ClassSplit,DataSplitRate,InitialParameterSet,LearningRate,Theta,MaxNoOfIteration)
 
-close all;
+
 
 [Len,~] = size(Data);
 
@@ -145,14 +149,14 @@ while ((Criterion>Theta)) %interface theta=0, so while(1>0)
     % Update the PerceptronFunction and The GradientOfCost.
     for i=1:(Train_Num1 + Train_Num2)    
         % Use the current OptParams and the ith train data to predict the class.
-        PredictedValue (i)=  (OptParams) *  transpose(Train_Data(i,:)); 
+        PredictedValue = (OptParams) *  transpose(Train_Data(i,:)); 
         
-        if (PredictedValue (i) <= 0)
+        if (PredictedValue <= 0)
             GradientOfCost = GradientOfCost - Train_Data(i,:);
             %Summing of the misclassified 
             %gradient Jp = sum (-y)
             
-            PerceptronFunction(NoOfIteration) = -PredictedValue(i) + PerceptronFunction(NoOfIteration);
+            PerceptronFunction(NoOfIteration) = -PredictedValue+ PerceptronFunction(NoOfIteration);
 
             %Represents the jp(a) = sum (-a^t * y);
             %y represents GradientOfCost or Train_Data(i,:)
@@ -161,7 +165,7 @@ while ((Criterion>Theta)) %interface theta=0, so while(1>0)
     end
     
     % Update the optimized parameters.
-    OptParams = OptParams + LearningRate*GradientOfCost; %a(k+1)=a(k)+miu(k)*gradient
+    OptParams = OptParams - LearningRate*GradientOfCost; %a(k+1)=a(k)+miu(k)*gradient
     
     % Update the value of the criterion to stop the algorithm.
     % |n(k)*gradient| < threshold
@@ -185,21 +189,95 @@ end
 % Plot data of class 1, class 2 and the estimated boundary.
 
 % Plot the values of the perceptron function.
+%%%%
+%%%%
+%%%%
+%%%%
 figure;
 plot(PerceptronFunction);
+title('Perceptron Function'); 
+axis('tight');
+ylabel('Perception Function Value');xlabel('Iteration');
+
+% Plot the values Feature space
+%%%%
+%%%%
+%%%%
+%%%%
+figure;
+scatter (Class1(:,1),Class1(:,2)); %class 1 
+hold on;
+scatter (Class2(:,1),Class2(:,2)); %class 2
+hold on;
+
+% %%%
+% figure;
+% scatter (Test_Class1(:,1),Test_Class1(:,2)); %class 1 
+% hold on;
+% scatter (Test_Class2(:,1),Test_Class2(:,2)); %class 2
+% hold on;
+
+% w0 w1 w2
+% x0+x1+x2
+% x2 = -(x0+x1)
+z = @(x) (OptParams(1) + OptParams(2) * x)/ -OptParams(3) ;
+values = -5:10;
+plot (values,z(values))
+title('Training Class Data')
+legend('Train Class 1', 'Train Class 2', 'Boundary');
+ylabel('x2');xlabel('x1');
+
+
 
 % Calculate the classification accuracy of the predictions on the test data.
+
+%NoOfAccuracy is used to count the number of -ve 
 NoOfAccuracy = 0;
 
+%a*y using the optimzed opt params
+test = OptParams* transpose(Test_Data);
+
+%Holder is used to count the number of +ve classifications
+holder=0;
+
 if((Train_Num1+Train_Num2)~=(length(Class1)+length(Class2)))
-	for j=1:length(Test_Data)
-        % Update the number of correct prediction here. 
-	end
+	for j=1:(length(Test_Data)/2)
+        
+        %used to check and count the number of times -ve and +ve values
+        %come from the jp = a*y (perceptron function)
+        if test(j) >=0
+            NoOfAccuracy = NoOfAccuracy+1;
+        end
+        
+    end
+    for j=(length(Test_Data)/2)+1:length(Test_Data);
+        
+        %used to check and count the number of times -ve and +ve values
+        %come from the jp = a*y (perceptron function)
+        if test(j) <=0
+            NoOfAccuracy = NoOfAccuracy+1;
+        end
+        
+    end
+    
+    
 end
 	
-ClassificationAccuracy = 
+%Very unorthodox
+%abs((holder - NoOfAccuracy)/2)/length(Test_Data) 
+%this represents the abs(+ve count - the -ve count)/2
+%this is done to find the number of WRONG classifications
+%e.g you know the perceptron is suppose to have 50% +ve and 50% -ve, yet
+%you have 36 right and 24 wrong. that means you have an error of 6
 
-NoOfIteration
+
+ClassificationAccuracy = NoOfAccuracy/length(Test_Data);
+
+% NoOfIteration
 
 TrainedParameterSet = OptParams
-end
+
+% end
+
+
+
